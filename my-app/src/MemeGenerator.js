@@ -1,22 +1,25 @@
 import React from 'react'
+import './index.css'
 
-/**
-     * Create a method that, when the "Gen" button is clicked, chooses one of the
-     * memes from our `allMemeImgs` array at random and makes it so that is the
-     * meme image that shows up in the bottom portion of our meme generator site (`.url`)
-     */
-
-class MemeGenerator extends React.Component{
-    constructor(props){
-        super(props)
+ 
+class MemeGenerator extends React.Component {
+    constructor() {
+        super()
         this.state = {
-            topText: "",
-            bottomText: "",
-            randomImage: "http://i.imgflip.com/1bij.jpg",
-            allMemeImgs: []
+            topText: "The App sounds easy will be done in no time",
+            bottomText: "12hrs later.....",
+            randomImage: "https://i.imgflip.com/4t0m5.jpg",
+            alt: "",
+            pastedUrl: "",
+            memeImages: "",
+            color: "#000000",
+            rangeTop: 24,
+            rangeBottom: 24
         }
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
+        this.generateRandom = this.generateRandom.bind(this)
+        this.addDefaultSrc = this.addDefaultSrc.bind(this)
     }
 
     componentDidMount(){
@@ -25,57 +28,125 @@ class MemeGenerator extends React.Component{
             .then(Response => Response.json())
             .then(data => {
                 this.setState({
-                allMemeImgs: data.data.memes
+                memeImages: data.data.memes
             })})
     }
 
-    handleChange(event) {
-        /* asssign name=event.target.name, value=event.target.value */
-        const {name, value} = event.target
-        /* update the state with typed value */
-        this.setState({[name]: value});
-      }
+    /* generate random meme imageUrl and description */
+    generateRandom(){
+        /* random image & description*/
+        const randomNumber = Math.floor(Math.random() * this.state.memeImages.length);
+        const description = this.state.memeImages[randomNumber].name
+        const memeImageUrl = this.state.memeImages[randomNumber].url 
 
+        return {
+            description: description,
+            memeImageUrl: memeImageUrl
+        }
+    }
+
+    /* Get random meme image & description*/
     handleSubmit(event){
         /* prevent reload of page when button is clicked */
         event.preventDefault();
-        /* Get a random number based on number of memems (100) */
-        const randomNumber = Math.floor(Math.random() * this.state.allMemeImgs.length);
-        /* Get random meme based on random number */
-        const randomMeme = this.state.allMemeImgs[randomNumber]
-        /* get random meme image url */
-        const memeImgUrl = randomMeme.url
-        /* set/change randomImage to new random url */
+        /*  Get random imageUrl & description*/
+        const newUrlAndDesc = this.generateRandom()
+
+        /* update state of randomImage & alt */
         this.setState({
-            randomImage: memeImgUrl
+            randomImage: newUrlAndDesc.memeImageUrl,
+            alt: newUrlAndDesc.description 
         })
-        
     }
 
-    render(){
+    handleChange(event){
+        const name = event.target.name
+        const value = event.target.value
+        /*if url is pasted */
+        if(name === "pastedUrl"){
+            this.setState({
+                randomImage: value
+            })
+            
+        }     
+        this.setState({
+            [name]: value,
+        })
+    }
+
+    /* display default image if imageUrl gives error */
+    addDefaultSrc(event){
+        event.target.src = "https://previews.dropbox.com/p/thumb/AAZdZzS_F-3FrSEemuswLIjUNFiFQmaZHZ6S76x4_txPdEW86Pgpd0QmSQzNC_IUbFgI9iZBjTa7VNi-_5mAxHlIIKROfbGkfpMfjliX1cg97swC7TtELMtX8uJdqaxY29PXddxNnMUlXp_lTPXFsXRDZ5XET2GAVl8orUUYB3Bs-UkenkX8AwGLXEgalN1e3mZva3gIjj2DDzrRq6M5WeOidXUcvJHaF9f5Jpy8HN9djbCEhCCYKY8w47ZuRF0rbufqIMrerjQsELWBRQqLydCpir54BRR9En91AbpSjW-kCXhyd49quw_pZ3rsDyUDA7Ncrp3ComwN2VcxtPyN-gG_/p.jpeg"
+      }
+
+    render() {
         return(
-            <div>
-                <form className="meme-form" onSubmit={this.handleSubmit}>
+            <div className="main">
+            <div className="form">
+                <h1>MemeGenerator</h1>
+                <form onSubmit={this.handleSubmit}>
+                    <p>Top Text</p>
                     <input 
-                        type="text" 
-                        name="topText" 
-                        placeholder="Top text"
+                        type="text"
+                        placeholder="Top Text"
+                        name="topText"
+                        onChange={this.handleChange}
                         value={this.state.topText}
-                        onChange={this.handleChange}
                     />
+                    <p>Bottom Text</p>
                     <input 
-                        type="text" 
-                        name="bottomText" 
-                        placeholder="Bottom text"
+                        type="text"
+                        placeholder="Bottom Text"
+                        name="bottomText"
+                        onChange={this.handleChange}
                         value={this.state.bottomText}
+                    />
+                    <br />
+                    <p>Insert Image-Url Or <button>Generate</button></p>
+                    <input 
+                        type="url"
+                        pattern="https?://.+"
+                        placeholder="Insert Url"
+                        name="pastedUrl"
+                        onChange={this.handleChange}
+                        value={this.state.pastedUrl}
+                    />
+                    <p>Text Color</p>
+                    <div className="typeColor" style={{backgroundColor: this.state.color}}>
+                        <input 
+                            type="color"
+                            name="color"
+                            value={this.state.color}
+                            onChange={this.handleChange}
+                        />
+                    </div>
+                    <p> Top Text Font Size: <span>{this.state.range}px</span></p>
+                    <input 
+                        type="range"
+                        name="rangeTop"
+                        min="2" 
+                        max="100" 
+                        step="2"
+                        value={this.state.rangeTop}
                         onChange={this.handleChange}
                     />
-                    <button>Gen</button>
+                    <p> Bottom Text Font Size: <span>{this.state.range}px</span></p>
+                    <input 
+                        type="range"
+                        name="rangeBottom"
+                        min="2" 
+                        max="100" 
+                        step="2"
+                        value={this.state.rangeBottom}
+                        onChange={this.handleChange}
+                    />
+                     
                 </form>
+            </div>
                 <div className="meme">
-                    <img src={this.state.randomImage} alt="" />
-                    <h2 className="top">{this.state.topText}</h2>
-                    <h2 className="bottom">{this.state.bottomText}</h2>
+                    <img src={this.state.randomImage} onError={this.addDefaultSrc} alt={this.state.alt}/>
+                    <p style={{color: this.state.color, fontSize: this.state.rangeTop + "px"}} className="topText">{this.state.topText}</p>
+                    <p style={{color: this.state.color, fontSize: this.state.rangeBottom + "px"}} className="bottomText">{this.state.bottomText}</p>                   
                 </div>
             </div>
         )
